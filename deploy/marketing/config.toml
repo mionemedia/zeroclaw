@@ -279,6 +279,20 @@ priority = 70
 # Quick/short tasks → Ollama gemma3:4b (fast & free)
 [[query_classification.rules]]
 hint = "fast"
+keywords = [
+    "ok",
+    "thanks",
+    "yes",
+    "no",
+    "got it",
+    "sure",
+    "nope",
+    "yeah",
+    "yep",
+    "k",
+    "ty",
+    "thx",
+]
 max_length = 50
 priority = 60
 
