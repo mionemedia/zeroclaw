@@ -57,25 +57,25 @@ model = "gemma3:4b"
 [[model_routes]]
 hint = "draft"
 provider = "ollama"
-model = "llama3.2"
+model = "llama3:8b"
 # Local drafting and brainstorming before premium writing
 
 [[model_routes]]
 hint = "brainstorm"
 provider = "ollama"
-model = "llama3.2"
+model = "llama3:8b"
 # Free idea generation, titles, hooks, angles
 
 [[model_routes]]
 hint = "outline"
 provider = "ollama"
-model = "llama3.2"
+model = "llama3:8b"
 # Structure planning and content organization
 
 [[model_routes]]
 hint = "seo"
 provider = "ollama"
-model = "llama3.2"
+model = "llama3:8b"
 # Keyword research and SEO analysis (free, better for content generation)
 
 [[model_routes]]
@@ -296,7 +296,7 @@ keywords = [
 max_length = 50
 priority = 60
 
-# Brainstorming → Ollama llama3.2 (free)
+# Brainstorming → Ollama llama3:8b (free)
 [[query_classification.rules]]
 hint = "brainstorm"
 keywords = [
