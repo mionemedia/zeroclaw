@@ -74,6 +74,19 @@ struct TelegramAttachment {
     target: String,
 }
 
+/// Metadata for a file received from Telegram (document, photo, etc.)
+#[derive(Debug, Clone)]
+struct TelegramIncomingFile {
+    file_id: String,
+    file_name: String,
+}
+
+/// Result of parsing an incoming Telegram update — message plus optional file.
+struct ParsedTelegramUpdate {
+    message: ChannelMessage,
+    file: Option<TelegramIncomingFile>,
+}
+
 impl TelegramAttachmentKind {
     fn from_marker(marker: &str) -> Option<Self> {
         match marker.trim().to_ascii_uppercase().as_str() {
@@ -738,10 +751,22 @@ Allowlist Telegram username (without '@') or numeric user ID.",
         }
     }
 
-    fn parse_update_message(&self, update: &serde_json::Value) -> Option<ChannelMessage> {
+    fn parse_update_message(&self, update: &serde_json::Value) -> Option<ParsedTelegramUpdate> {
         let message = update.get("message")?;
 
-        let text = message.get("text").and_then(serde_json::Value::as_str)?;
+        // Try "text" first, then "caption" (used with documents/photos)
+        let text_field = message
+            .get("text")
+            .and_then(serde_json::Value::as_str)
+            .or_else(|| message.get("caption").and_then(serde_json::Value::as_str));
+
+        // Extract incoming document metadata if present
+        let incoming_file = Self::extract_incoming_file(message);
+
+        // Must have either text/caption or a file attachment to proceed
+        if text_field.is_none() && incoming_file.is_none() {
+            return None;
+        }
 
         let username = message
             .get("from")
@@ -770,6 +795,8 @@ Allowlist Telegram username (without '@') or numeric user ID.",
         if !self.is_any_user_allowed(identities.iter().copied()) {
             return None;
         }
+
+        let text = text_field.unwrap_or("");
 
         let is_group = Self::is_group_message(message);
         if self.mention_only && is_group {
@@ -811,21 +838,89 @@ Allowlist Telegram username (without '@') or numeric user ID.",
             let bot_username = self.bot_username.lock();
             let bot_username = bot_username.as_ref()?;
             Self::normalize_incoming_content(text, bot_username)?
+        } else if text.is_empty() {
+            // File-only message with no caption — synthesize content
+            if let Some(ref file) = incoming_file {
+                format!("I've uploaded a file: {}", file.file_name)
+            } else {
+                return None;
+            }
         } else {
             text.to_string()
         };
 
-        Some(ChannelMessage {
-            id: format!("telegram_{chat_id}_{message_id}"),
-            sender: sender_identity,
-            reply_target,
-            content,
-            channel: "telegram".to_string(),
-            timestamp: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs(),
+        Some(ParsedTelegramUpdate {
+            message: ChannelMessage {
+                id: format!("telegram_{chat_id}_{message_id}"),
+                sender: sender_identity,
+                reply_target,
+                content,
+                channel: "telegram".to_string(),
+                timestamp: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs(),
+            },
+            file: incoming_file,
         })
+    }
+
+    /// Extract file metadata from a Telegram message (document or photo).
+    fn extract_incoming_file(message: &serde_json::Value) -> Option<TelegramIncomingFile> {
+        // Check for document (pdf, docx, txt, etc.)
+        if let Some(doc) = message.get("document") {
+            let file_id = doc.get("file_id").and_then(|v| v.as_str())?.to_string();
+            let file_name = doc
+                .get("file_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("document")
+                .to_string();
+            return Some(TelegramIncomingFile { file_id, file_name });
+        }
+
+        // Check for photo (array of sizes — pick largest)
+        if let Some(photos) = message.get("photo").and_then(|v| v.as_array()) {
+            if let Some(largest) = photos.last() {
+                let file_id = largest.get("file_id").and_then(|v| v.as_str())?.to_string();
+                return Some(TelegramIncomingFile {
+                    file_id,
+                    file_name: "photo.jpg".to_string(),
+                });
+            }
+        }
+
+        // Check for voice message
+        if let Some(voice) = message.get("voice") {
+            let file_id = voice.get("file_id").and_then(|v| v.as_str())?.to_string();
+            return Some(TelegramIncomingFile {
+                file_id,
+                file_name: "voice.ogg".to_string(),
+            });
+        }
+
+        // Check for audio
+        if let Some(audio) = message.get("audio") {
+            let file_id = audio.get("file_id").and_then(|v| v.as_str())?.to_string();
+            let file_name = audio
+                .get("file_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("audio.mp3")
+                .to_string();
+            return Some(TelegramIncomingFile { file_id, file_name });
+        }
+
+        // Check for video
+        if let Some(video) = message.get("video") {
+            let file_id = video.get("file_id").and_then(|v| v.as_str())?.to_string();
+            let file_name = video
+                .get("file_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("video.mp4")
+                .to_string();
+            return Some(TelegramIncomingFile { file_id, file_name });
+        }
+
+        None
     }
 
     async fn send_text_chunks(
@@ -1411,6 +1506,61 @@ Allowlist Telegram username (without '@') or numeric user ID.",
         self.send_media_by_url("sendVoice", "voice", chat_id, thread_id, url, caption)
             .await
     }
+
+    /// Download a file from Telegram servers and save it to the workspace uploads directory.
+    async fn download_telegram_file(
+        &self,
+        file_id: &str,
+        file_name: &str,
+    ) -> anyhow::Result<std::path::PathBuf> {
+        // 1. Call getFile to get the server-side file_path
+        let resp = self
+            .http_client()
+            .get(format!("{}?file_id={}", self.api_url("getFile"), file_id))
+            .send()
+            .await
+            .context("Telegram getFile request failed")?;
+
+        if !resp.status().is_success() {
+            let err = resp.text().await.unwrap_or_default();
+            anyhow::bail!("Telegram getFile failed: {err}");
+        }
+
+        let data: serde_json::Value = resp.json().await?;
+        let file_path = data
+            .get("result")
+            .and_then(|r| r.get("file_path"))
+            .and_then(|p| p.as_str())
+            .context("Missing file_path in Telegram getFile response")?;
+
+        // 2. Download the file bytes
+        let download_url = format!(
+            "https://api.telegram.org/file/bot{}/{}",
+            self.bot_token, file_path
+        );
+        let file_bytes = self
+            .http_client()
+            .get(&download_url)
+            .send()
+            .await
+            .context("Telegram file download failed")?
+            .bytes()
+            .await?;
+
+        // 3. Save to workspace uploads directory
+        let uploads_dir = Path::new("/zeroclaw-data/workspace/output/uploads");
+        tokio::fs::create_dir_all(uploads_dir).await?;
+
+        let dest = uploads_dir.join(file_name);
+        tokio::fs::write(&dest, &file_bytes).await?;
+
+        tracing::info!(
+            "Telegram file saved: {} ({} bytes)",
+            dest.display(),
+            file_bytes.len()
+        );
+        Ok(dest)
+    }
 }
 
 #[async_trait]
@@ -1744,10 +1894,39 @@ Ensure only one `zeroclaw` process is using this bot token."
                         offset = uid + 1;
                     }
 
-                    let Some(msg) = self.parse_update_message(update) else {
+                    let Some(parsed) = self.parse_update_message(update) else {
                         self.handle_unauthorized_message(update).await;
                         continue;
                     };
+
+                    let mut msg = parsed.message;
+
+                    // Download attached file and prepend path to message content
+                    if let Some(file_info) = parsed.file {
+                        match self
+                            .download_telegram_file(&file_info.file_id, &file_info.file_name)
+                            .await
+                        {
+                            Ok(path) => {
+                                msg.content = format!(
+                                    "[Uploaded file saved to: {}]\n\n{}",
+                                    path.display(),
+                                    msg.content
+                                );
+                            }
+                            Err(e) => {
+                                tracing::warn!(
+                                    "Failed to download Telegram file '{}': {e}",
+                                    file_info.file_name
+                                );
+                                msg.content = format!(
+                                    "[File upload received: '{}' but download failed: {e}]\n\n{}",
+                                    file_info.file_name, msg.content
+                                );
+                            }
+                        }
+                    }
+
                     // Send "typing" indicator immediately when we receive a message
                     let typing_body = serde_json::json!({
                         "chat_id": &msg.reply_target,
