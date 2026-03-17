@@ -201,6 +201,18 @@ enabled = true
 [query_classification]
 enabled = true
 
+# Draft tasks → Ollama llama3:8b (cost-optimized, tool access)
+[[query_classification.rules]]
+hint = "draft"
+keywords = [
+    "draft",
+    "rough draft",
+    "first draft",
+    "quick draft",
+    "write a draft",
+]
+priority = 110
+
 # High-priority creative tasks → Claude Sonnet 4
 [[query_classification.rules]]
 hint = "marketing"
