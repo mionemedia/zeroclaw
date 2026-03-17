@@ -29,11 +29,13 @@ services:
     volumes:
       - ./config.toml:/src/config.toml:ro
       - zeroclaw-config:/dest
+      - "H:/GitHub/zeroclaw-main/deploy/marketing/output:/output"
     command: >
       sh -c "cp /src/config.toml /dest/config.toml &&
              sed -i 's|__TELEGRAM_BOT_TOKEN__|'\"$$TELEGRAM_BOT_TOKEN\"'|g' /dest/config.toml &&
              chown 65534:65534 /dest/config.toml &&
              chmod 600 /dest/config.toml &&
+             chown -R 65534:65534 /output &&
              echo 'Config initialized (secrets injected)'"
 
   zeroclaw:
@@ -67,6 +69,12 @@ services:
       - marketing-sandbox:/zeroclaw-data/workspace
       # Obsidian vault — read-only knowledge base
       - "H:/Documents/Papi projects/Papi Random Project:/zeroclaw-data/workspace/knowledge:ro"
+      # Output folder — agent writes here, user reads from host
+      - "H:/GitHub/zeroclaw-main/deploy/marketing/output:/zeroclaw-data/workspace/output"
+      # Agent team definitions — read-only persona library
+      - "H:/GitHub/agency-agents:/zeroclaw-data/workspace/agents:ro"
+      # AGENTS.md — injected into system prompt automatically by ZeroClaw
+      - ./AGENTS.md:/zeroclaw-data/workspace/AGENTS.md:ro
 
     # ── Networking ───────────────────────────────────────────
     ports:
