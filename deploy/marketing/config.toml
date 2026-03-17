@@ -188,5 +188,110 @@ enabled = true
 [cron]
 enabled = true
 
+# ── Automatic Model Selection ────────────────────────────────────
+# Intelligent routing: analyzes message content and picks best model
+# Rules evaluated by priority (higher = checked first)
+
+[query_classification]
+enabled = true
+
+# High-priority creative tasks → Claude Sonnet 4
+[[query_classification.rules]]
+hint = "marketing"
+keywords = [
+    "email",
+    "newsletter",
+    "campaign",
+    "nurture",
+    "copy",
+    "blurb",
+    "headline",
+    "hook",
+    "teaser",
+    "promo",
+    "brand",
+    "voice",
+    "tone",
+]
+priority = 100
+
+[[query_classification.rules]]
+hint = "book"
+keywords = [
+    "chapter",
+    "scene",
+    "story",
+    "character",
+    "plot",
+    "prose",
+    "manuscript",
+    "fiction",
+    "novel",
+]
+priority = 100
+
+# Deep analysis → Claude Sonnet 4.5
+[[query_classification.rules]]
+hint = "deep"
+keywords = [
+    "strategy",
+    "analyze",
+    "metrics",
+    "performance",
+    "roi",
+    "decision",
+    "recommend",
+    "evaluate",
+    "compare",
+]
+min_length = 100
+priority = 90
+
+# Code/technical → Ollama qwen2.5-coder (free)
+[[query_classification.rules]]
+hint = "code"
+patterns = ["```", "fn ", "def ", "class ", "import ", "function"]
+keywords = ["code", "script", "debug", "error", "syntax", "programming"]
+priority = 80
+
+# SEO/data → Ollama deepseek-r1 (free)
+[[query_classification.rules]]
+hint = "seo"
+keywords = [
+    "keyword",
+    "ctr",
+    "cpc",
+    "conversion",
+    "bookbub",
+    "amazon ads",
+    "data",
+    "csv",
+    "stats",
+]
+priority = 70
+
+# Quick/short tasks → Ollama gemma3:4b (fast & free)
+[[query_classification.rules]]
+hint = "fast"
+max_length = 50
+priority = 60
+
+# Brainstorming → Ollama llama3.2 (free)
+[[query_classification.rules]]
+hint = "brainstorm"
+keywords = [
+    "ideas",
+    "brainstorm",
+    "suggest",
+    "what if",
+    "options",
+    "alternatives",
+    "possibilities",
+]
+priority = 50
+
+# Default: marketing-quality Claude Sonnet 4 for anything else
+# (Set via default_model above)
+
 [runtime]
 kind = "native"
