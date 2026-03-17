@@ -32,8 +32,8 @@ model = "anthropic/claude-sonnet-4"
 [[model_routes]]
 hint = "deep"
 provider = "openrouter"
-model = "anthropic/claude-sonnet-4.5"
-# Deep reasoning for complex strategic analysis
+model = "anthropic/claude-sonnet-4"
+# Deep reasoning for complex strategic analysis (was 4.5, but availability issues)
 
 # ── Ollama Routes (free local models for utility tasks) ──
 [[model_routes]]
@@ -236,7 +236,7 @@ keywords = [
 ]
 priority = 100
 
-# Deep analysis → Claude Sonnet 4.5
+# Deep analysis → Claude Sonnet 4 (reliable availability)
 [[query_classification.rules]]
 hint = "deep"
 keywords = [
