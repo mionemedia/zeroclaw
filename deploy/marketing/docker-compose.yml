@@ -76,6 +76,8 @@ services:
       - "H:/GitHub/agency-agents:/zeroclaw-data/workspace/agents:ro"
       # AGENTS.md — injected into system prompt automatically by ZeroClaw
       - ./AGENTS.md:/zeroclaw-data/workspace/AGENTS.md:ro
+      # SOUL.md — agent identity, personality, and core behavioral boundaries
+      - ./SOUL.md:/zeroclaw-data/workspace/SOUL.md:ro
 
     # ── Networking ───────────────────────────────────────────
     ports:
