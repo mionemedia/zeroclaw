@@ -52,19 +52,19 @@ model = "mixtral:8x7b"
 hint = "fast"
 provider = "ollama"
 model = "gemma3:4b"
-# 4.3B lightweight - quick responses and summaries
+# Quick acknowledgments only (no tools needed) - 20-40 t/s
 
 [[model_routes]]
 hint = "draft"
 provider = "ollama"
-model = "llama3:8b"
-# Versatile drafts, lore (15-25 t/s, high savings)
+model = "MFDoom/deepseek-r1-tool-calling:latest"
+# Drafts with workspace/tool access (10-20 t/s, high savings)
 
 [[model_routes]]
 hint = "brainstorm"
 provider = "ollama"
-model = "gemma3:4b"
-# Creative hooks, ideas (20-40 t/s, max savings)
+model = "llama3:8b"
+# Creative hooks, ideas with tool access (15-25 t/s, high savings)
 
 [[model_routes]]
 hint = "outline"
