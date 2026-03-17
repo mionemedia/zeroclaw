@@ -78,6 +78,8 @@ services:
       - ./AGENTS.md:/zeroclaw-data/workspace/AGENTS.md:ro
       # SOUL.md — agent identity, personality, and core behavioral boundaries
       - ./SOUL.md:/zeroclaw-data/workspace/SOUL.md:ro
+      # STYLE.md — marketing voice protocol for Odin Smalls' cultivation fantasy
+      - ./STYLE.md:/zeroclaw-data/workspace/STYLE.md:ro
 
     # ── Networking ───────────────────────────────────────────
     ports:
