@@ -5,8 +5,8 @@
 # Quick start (Docker Desktop):
 #   1. Copy .env.example to .env and fill in your API key
 #   2. docker compose up -d
-#   3. Access gateway at http://localhost:3000
-#   4. Pair your client:  curl -X POST http://localhost:3000/pair
+#   3. Access dashboard at http://localhost:42617
+#   4. Pair your client:  curl -X POST http://localhost:42617/pair
 #
 # Security posture:
 #   - No shell/SSH/Docker tools enabled
@@ -54,7 +54,7 @@ services:
       - PROVIDER=${PROVIDER:-openrouter}
       - ZEROCLAW_MODEL=${ZEROCLAW_MODEL:-anthropic/claude-sonnet-4}
       - ZEROCLAW_ALLOW_PUBLIC_BIND=true
-      - ZEROCLAW_GATEWAY_PORT=3000
+      - ZEROCLAW_GATEWAY_PORT=42617
       # Web search
       - WEB_SEARCH_ENABLED=true
       - WEB_SEARCH_PROVIDER=${WEB_SEARCH_PROVIDER:-duckduckgo}
@@ -79,16 +79,16 @@ services:
     # ── Networking ───────────────────────────────────────────
     ports:
       # Bind to localhost ONLY — not exposed to LAN/internet
-      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+      - "127.0.0.1:${HOST_PORT:-42617}:42617"
 
     # ── Resource Limits ──────────────────────────────────────
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.25'
+          cpus: "0.25"
           memory: 256M
 
     # ── Security Hardening ───────────────────────────────────
