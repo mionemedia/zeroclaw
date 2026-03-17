@@ -6,6 +6,12 @@ default_provider = "openrouter"
 default_model = "anthropic/claude-sonnet-4"
 default_temperature = 0.7
 
+# ── Provider Configuration ──────────────────────────────────────────
+# Ollama provider for free local models
+[model_providers.ollama]
+name = "ollama"
+base_url = "http://host.docker.internal:11434"
+
 # ── Model Routes (hybrid: OpenRouter for quality + Ollama for tasks) ──
 # Default: OpenRouter Claude for marketing & book writing (high quality)
 # Use hint:<name> to switch models based on task requirements
