@@ -45,8 +45,8 @@ model = "qwen2.5-coder:latest"
 [[model_routes]]
 hint = "reasoning"
 provider = "ollama"
-model = "MFDoom/deepseek-r1-tool-calling:latest"
-# 7.6B tool calling - data analysis and logic
+model = "mixtral:8x7b"
+# Complex analysis like BookBub strategy (5-15 t/s, medium savings)
 
 [[model_routes]]
 hint = "fast"
@@ -56,27 +56,27 @@ model = "gemma3:4b"
 
 [[model_routes]]
 hint = "draft"
-provider = "openrouter"
-model = "anthropic/claude-sonnet-4"
-# Content drafting requires creative quality
+provider = "ollama"
+model = "llama3:8b"
+# Versatile drafts, lore (15-25 t/s, high savings)
 
 [[model_routes]]
 hint = "brainstorm"
-provider = "openrouter"
-model = "anthropic/claude-sonnet-4"
-# Strategic ideation requires creative thinking
+provider = "ollama"
+model = "gemma3:4b"
+# Creative hooks, ideas (20-40 t/s, max savings)
 
 [[model_routes]]
 hint = "outline"
-provider = "openrouter"
-model = "anthropic/claude-sonnet-4"
-# Content strategy and planning
+provider = "ollama"
+model = "qwen2.5:7b"
+# Plans/structure (12-25 t/s, high savings)
 
 [[model_routes]]
 hint = "seo"
-provider = "openrouter"
-model = "anthropic/claude-sonnet-4"
-# SEO keyword research is marketing content creation
+provider = "ollama"
+model = "MFDoom/deepseek-r1-tool-calling:latest"
+# Keywords/promos (10-20 t/s, high savings)
 
 [[model_routes]]
 hint = "final"
@@ -260,7 +260,7 @@ patterns = ["```", "fn ", "def ", "class ", "import ", "function"]
 keywords = ["code", "script", "debug", "error", "syntax", "programming"]
 priority = 80
 
-# SEO/marketing → OpenRouter Claude Sonnet 4 (premium)
+# SEO/keywords → Ollama deepseek-r1 (cost-optimized)
 [[query_classification.rules]]
 hint = "seo"
 keywords = [
@@ -296,7 +296,7 @@ keywords = [
 max_length = 50
 priority = 60
 
-# Brainstorming → OpenRouter Claude Sonnet 4 (creative)
+# Brainstorming → Ollama gemma3:4b (fast & free)
 [[query_classification.rules]]
 hint = "brainstorm"
 keywords = [
