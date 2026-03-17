@@ -183,10 +183,10 @@ compact_context = false
 parallel_tools = false
 
 [scheduler]
-enabled = false
+enabled = true
 
 [cron]
-enabled = false
+enabled = true
 
 [runtime]
 kind = "native"
