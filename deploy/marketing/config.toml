@@ -56,27 +56,27 @@ model = "gemma3:4b"
 
 [[model_routes]]
 hint = "draft"
-provider = "ollama"
-model = "llama3:8b"
-# Local drafting and brainstorming before premium writing
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Content drafting requires creative quality
 
 [[model_routes]]
 hint = "brainstorm"
-provider = "ollama"
-model = "llama3:8b"
-# Free idea generation, titles, hooks, angles
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Strategic ideation requires creative thinking
 
 [[model_routes]]
 hint = "outline"
-provider = "ollama"
-model = "llama3:8b"
-# Structure planning and content organization
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Content strategy and planning
 
 [[model_routes]]
 hint = "seo"
-provider = "ollama"
-model = "llama3:8b"
-# Keyword research and SEO analysis (free, better for content generation)
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# SEO keyword research is marketing content creation
 
 [[model_routes]]
 hint = "final"
@@ -260,7 +260,7 @@ patterns = ["```", "fn ", "def ", "class ", "import ", "function"]
 keywords = ["code", "script", "debug", "error", "syntax", "programming"]
 priority = 80
 
-# SEO/data → Ollama deepseek-r1 (free)
+# SEO/marketing → OpenRouter Claude Sonnet 4 (premium)
 [[query_classification.rules]]
 hint = "seo"
 keywords = [
@@ -296,7 +296,7 @@ keywords = [
 max_length = 50
 priority = 60
 
-# Brainstorming → Ollama llama3:8b (free)
+# Brainstorming → OpenRouter Claude Sonnet 4 (creative)
 [[query_classification.rules]]
 hint = "brainstorm"
 keywords = [
