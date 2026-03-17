@@ -51,6 +51,7 @@ services:
     # ── Environment ──────────────────────────────────────────
     environment:
       - API_KEY=${API_KEY:?Set API_KEY in .env}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
       - PROVIDER=${PROVIDER:-openrouter}
       - ZEROCLAW_MODEL=${ZEROCLAW_MODEL:-anthropic/claude-sonnet-4}
       - ZEROCLAW_ALLOW_PUBLIC_BIND=true
@@ -80,6 +81,9 @@ services:
     ports:
       # Bind to localhost ONLY — not exposed to LAN/internet
       - "127.0.0.1:${HOST_PORT:-42617}:42617"
+    extra_hosts:
+      # Allow container to access host services (Ollama)
+      - "host.docker.internal:host-gateway"
 
     # ── Resource Limits ──────────────────────────────────────
     deploy:
