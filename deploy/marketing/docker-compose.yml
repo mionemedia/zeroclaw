@@ -67,6 +67,10 @@ services:
       - marketing-sandbox:/zeroclaw-data/workspace
       # Obsidian vault — read-only knowledge base
       - "H:/Documents/Papi projects/Papi Random Project:/zeroclaw-data/workspace/knowledge:ro"
+      # Agent team definitions — read-only persona library
+      - "H:/GitHub/agency-agents:/zeroclaw-data/workspace/agents:ro"
+      # AGENTS.md — injected into system prompt automatically by ZeroClaw
+      - ./AGENTS.md:/zeroclaw-data/workspace/AGENTS.md:ro
 
     # ── Networking ───────────────────────────────────────────
     ports:
