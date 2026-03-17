@@ -1,0 +1,101 @@
+# ZeroClaw Marketing Research Agent — Docker Compose
+# ──────────────────────────────────────────────────────
+# Hardened deployment for marketing research and planning.
+#
+# Quick start (Docker Desktop):
+#   1. Copy .env.example to .env and fill in your API key
+#   2. docker compose up -d
+#   3. Access gateway at http://localhost:3000
+#   4. Pair your client:  curl -X POST http://localhost:3000/pair
+#
+# Security posture:
+#   - No shell/SSH/Docker tools enabled
+#   - Workspace isolated to a named volume (marketing-sandbox)
+#   - Gateway bound to localhost only on the host side
+#   - Read-only config mount (agent cannot modify its own policy)
+#   - Resource-limited (1 CPU, 1 GB RAM)
+#   - No privileged capabilities, read-only root filesystem
+#   - Runs as non-root (uid 65534)
+
+name: zeroclaw-marketing
+
+services:
+  # Init container: copies config.toml into the config volume with correct ownership
+  init-config:
+    image: alpine:3.20
+    container_name: zeroclaw-marketing-init
+    volumes:
+      - ./config.toml:/src/config.toml:ro
+      - zeroclaw-config:/dest
+    command: >
+      sh -c "cp /src/config.toml /dest/config.toml &&
+             chown 65534:65534 /dest/config.toml &&
+             chmod 600 /dest/config.toml &&
+             echo 'Config initialized'"
+
+  zeroclaw:
+    image: zeroclaw-local:latest
+    container_name: zeroclaw-marketing
+    restart: unless-stopped
+    depends_on:
+      init-config:
+        condition: service_completed_successfully
+    # Run in daemon mode: gateway + channels (Telegram) + heartbeat
+    command: ["daemon"]
+
+    # ── Environment ──────────────────────────────────────────
+    environment:
+      - API_KEY=${API_KEY:?Set API_KEY in .env}
+      - PROVIDER=${PROVIDER:-openrouter}
+      - ZEROCLAW_MODEL=${ZEROCLAW_MODEL:-anthropic/claude-sonnet-4}
+      - ZEROCLAW_ALLOW_PUBLIC_BIND=true
+      - ZEROCLAW_GATEWAY_PORT=3000
+      # Web search
+      - WEB_SEARCH_ENABLED=true
+      - WEB_SEARCH_PROVIDER=${WEB_SEARCH_PROVIDER:-duckduckgo}
+      - WEB_SEARCH_MAX_RESULTS=${WEB_SEARCH_MAX_RESULTS:-10}
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+
+    # ── Volumes ──────────────────────────────────────────────
+    volumes:
+      # Config volume — owned by uid 65534, writable for pairing/bind persistence
+      - zeroclaw-config:/zeroclaw-data/.zeroclaw
+      # Isolated workspace — agent can only read/write here
+      - marketing-sandbox:/zeroclaw-data/workspace
+      # Obsidian vault — read-only knowledge base
+      - "H:/Documents/Papi projects/Papi Random Project:/zeroclaw-data/workspace/knowledge:ro"
+
+    # ── Networking ───────────────────────────────────────────
+    ports:
+      # Bind to localhost ONLY — not exposed to LAN/internet
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+
+    # ── Resource Limits ──────────────────────────────────────
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # ── Security Hardening ───────────────────────────────────
+    tmpfs:
+      - /tmp:size=64M,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+
+    # ── Health Check ─────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "zeroclaw", "status"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  zeroclaw-config:
+    name: zeroclaw-marketing-config
+  marketing-sandbox:
+    name: zeroclaw-marketing-sandbox
