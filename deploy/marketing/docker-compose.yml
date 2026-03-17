@@ -24,14 +24,17 @@ services:
   init-config:
     image: alpine:3.20
     container_name: zeroclaw-marketing-init
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
     volumes:
       - ./config.toml:/src/config.toml:ro
       - zeroclaw-config:/dest
     command: >
       sh -c "cp /src/config.toml /dest/config.toml &&
+             sed -i 's|__TELEGRAM_BOT_TOKEN__|'\"$$TELEGRAM_BOT_TOKEN\"'|g' /dest/config.toml &&
              chown 65534:65534 /dest/config.toml &&
              chmod 600 /dest/config.toml &&
-             echo 'Config initialized'"
+             echo 'Config initialized (secrets injected)'"
 
   zeroclaw:
     image: zeroclaw-local:latest
