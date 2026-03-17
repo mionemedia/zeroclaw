@@ -1,0 +1,121 @@
+# ZeroClaw Marketing Research Agent — Hardened Config
+workspace_dir = "/zeroclaw-data/workspace"
+config_path   = "/zeroclaw-data/.zeroclaw/config.toml"
+
+default_provider    = "openrouter"
+default_model       = "anthropic/claude-sonnet-4"
+default_temperature = 0.7
+
+# ── Model Routes (use hint:<name> prefix in Telegram to switch) ──
+# hint:gemma  → free, lightweight, fast drafts
+# hint:gpt    → free, 20B param, solid general-purpose
+# hint:deep   → Claude Sonnet 4.5, premium deep reasoning
+# hint:flash  → Gemini Flash Lite, ultra-cheap fast research
+
+[[model_routes]]
+hint     = "gemma"
+provider = "openrouter"
+model    = "google/gemma-3n-e4b-it:free"
+
+[[model_routes]]
+hint     = "gpt"
+provider = "openrouter"
+model    = "openai/gpt-oss-20b:free"
+
+[[model_routes]]
+hint     = "deep"
+provider = "openrouter"
+model    = "anthropic/claude-sonnet-4.5"
+
+[[model_routes]]
+hint     = "flash"
+provider = "openrouter"
+model    = "google/gemini-2.5-flash-lite-preview-09-2025"
+
+[gateway]
+port              = 3000
+host              = "[::]"
+allow_public_bind = true
+require_pairing   = true
+pair_rate_limit_per_minute    = 5
+webhook_rate_limit_per_minute = 30
+
+[autonomy]
+level                          = "supervised"
+workspace_only                 = true
+require_approval_for_medium_risk = true
+block_high_risk_commands       = true
+max_actions_per_hour           = 60
+max_cost_per_day_cents         = 500
+allowed_commands = ["ls", "cat", "head", "tail", "wc", "grep", "find", "echo", "pwd"]
+forbidden_paths = [
+    "/etc", "/root", "/home", "/usr", "/bin", "/sbin",
+    "/lib", "/opt", "/boot", "/dev", "/proc", "/sys",
+    "/var", "/tmp", "~/.ssh", "~/.gnupg", "~/.aws", "~/.config",
+]
+auto_approve = ["file_read", "memory_recall", "web_search_tool"]
+always_ask   = []
+
+[web_search]
+enabled      = true
+provider     = "duckduckgo"
+max_results  = 10
+timeout_secs = 20
+
+[http_request]
+enabled            = true
+allowed_domains    = ["workflows.mi1-media.com"]
+max_response_size  = 1000000
+timeout_secs       = 30
+
+[memory]
+backend   = "sqlite"
+auto_save = true
+
+[browser]
+enabled = false
+
+[composio]
+enabled = false
+
+[hardware]
+enabled = false
+
+[peripherals]
+enabled = false
+
+[secrets]
+encrypt = true
+
+[cost]
+enabled          = true
+daily_limit_usd  = 5.00
+monthly_limit_usd = 50.00
+warn_at_percent  = 80
+
+[channels_config]
+cli = true
+
+[channels_config.telegram]
+bot_token      = "__TELEGRAM_BOT_TOKEN__"
+allowed_users  = ["8203092181"]
+stream_mode    = "partial"
+mention_only   = false
+
+[observability]
+backend = "log"
+
+[agent]
+max_tool_iterations    = 15
+max_history_messages   = 50
+compact_context        = false
+parallel_tools         = false
+
+[scheduler]
+enabled = false
+
+[cron]
+enabled = false
+
+[runtime]
+kind = "native"
