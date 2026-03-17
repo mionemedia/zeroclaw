@@ -52,6 +52,7 @@ services:
     environment:
       - API_KEY=${API_KEY:?Set API_KEY in .env}
       - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - ZEROCLAW_PROVIDER_URL=http://host.docker.internal:11434
       - PROVIDER=${PROVIDER:-openrouter}
       - ZEROCLAW_MODEL=${ZEROCLAW_MODEL:-anthropic/claude-sonnet-4}
       - ZEROCLAW_ALLOW_PUBLIC_BIND=true
@@ -64,7 +65,9 @@ services:
 
     # ── Volumes ──────────────────────────────────────────────
     volumes:
-      # Config volume — owned by uid 65534, writable for pairing/bind persistence
+      # Config file — bind mount for direct access to Ollama provider settings
+      - ./config.toml:/zeroclaw-data/.zeroclaw/config.toml:ro
+      # Config directory for runtime state (pairing, session persistence)
       - zeroclaw-config:/zeroclaw-data/.zeroclaw
       # Isolated workspace — agent can only read/write here
       - marketing-sandbox:/zeroclaw-data/workspace
