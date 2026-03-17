@@ -64,7 +64,7 @@ timeout_secs = 20
 
 [http_request]
 enabled            = true
-allowed_domains    = ["workflows.mi1-media.com"]
+allowed_domains    = ["*"]
 max_response_size  = 1000000
 timeout_secs       = 30
 
