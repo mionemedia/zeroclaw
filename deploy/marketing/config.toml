@@ -75,8 +75,8 @@ model = "llama3.2"
 [[model_routes]]
 hint = "seo"
 provider = "ollama"
-model = "MFDoom/deepseek-r1-tool-calling:latest"
-# Keyword research and SEO analysis (free)
+model = "llama3.2"
+# Keyword research and SEO analysis (free, better for content generation)
 
 [[model_routes]]
 hint = "final"
