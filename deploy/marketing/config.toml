@@ -57,8 +57,8 @@ model = "gemma3:4b"
 [[model_routes]]
 hint = "draft"
 provider = "ollama"
-model = "MFDoom/deepseek-r1-tool-calling:latest"
-# Drafts with workspace/tool access (10-20 t/s, high savings)
+model = "llama3:8b"
+# Versatile drafts, lore with tool access (15-25 t/s, high savings)
 
 [[model_routes]]
 hint = "brainstorm"
