@@ -84,6 +84,17 @@ To use a workflow, read the file and follow the steps defined within.
 
 The user's Obsidian vault is mounted at `/zeroclaw-data/workspace/knowledge/`. This contains worldbuilding notes, research, and reference material that agents can access during their work.
 
+## Output Folder
+
+When creating documents (PDF, Markdown, text, DOCX, etc.), **always save them to `/zeroclaw-data/workspace/output/`**. This folder is directly accessible to the user on their host machine. Use descriptive filenames with dates, e.g.:
+
+- `output/chapter-2-draft-v1.md`
+- `output/book-marketing-plan-2026-03.md`
+- `output/social-media-calendar-q2.md`
+- `output/executive-summary-launch.txt`
+
+For formats like PDF and DOCX that require code generation, write the generation script to `output/` as well, then explain how to run it.
+
 ## Key Rules
 
 1. **Always read the full agent definition** before adopting a persona — don't improvise from the summary alone
@@ -91,3 +102,4 @@ The user's Obsidian vault is mounted at `/zeroclaw-data/workspace/knowledge/`. T
 3. **Use the knowledge base** when the task relates to the user's existing content
 4. **Save important outputs to memory** so work persists across sessions
 5. **Ask clarifying questions** before starting major work, as specified in each agent's workflow
+6. **Save all documents to the output folder** — never save to other workspace paths if the user needs to read the file
