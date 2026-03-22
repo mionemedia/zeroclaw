@@ -130,7 +130,16 @@ forbidden_paths = [
     "~/.aws",
     "~/.config",
 ]
-auto_approve = ["file_read", "memory_recall", "web_search_tool"]
+auto_approve = [
+    "file_read",
+    "memory_recall",
+    "web_search_tool",
+    "cron_add",
+    "cron_list",
+    "cron_remove",
+    "cron_update",
+    "cron_run",
+]
 always_ask = []
 
 [web_search]
