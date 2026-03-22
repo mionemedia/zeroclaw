@@ -143,8 +143,8 @@ impl WebSearchTool {
             r#"<a[^>]*class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)</a>"#,
         )?;
 
-        // Extract snippets: <a class="result__snippet">...</a>
-        let snippet_regex = Regex::new(r#"<a class="result__snippet[^"]*"[^>]*>([\s\S]*?)</a>"#)?;
+        // Extract snippets: can be in any tag (div, span, a) with class result__snippet
+        let snippet_regex = Regex::new(r#"<[^>]*class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)</[^>]+>"#)?;
 
         let link_matches: Vec<_> = link_regex
             .captures_iter(html)

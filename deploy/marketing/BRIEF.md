@@ -6,6 +6,8 @@
 **Purpose:** Autonomous marketing agent for Odin Smalls' ZAHANARA dark cultivation fantasy series
 
 **Recent Updates:**
+- **Web search fixed (2026-03-22)**: DuckDuckGo parser updated - bot now has full online research capabilities
+- **Bot behavior optimized**: SOUL.md updated to prevent automatic file creation unless requested
 - Model optimization: Removed failing models (deepseek-r1, mixtral), freed 30.7 GB
 - Verified tool-calling reliability across all Ollama models
 - Full cron job management capabilities enabled (create/edit/delete/run)
