@@ -1,9 +1,15 @@
 # ZeroClaw Marketing Deployment — System Brief
 
 **Version:** 0.4.3 (with custom marketing enhancements)  
-**Last Updated:** 2026-03-17  
+**Last Updated:** 2026-03-22  
 **Owner:** mionemedia  
 **Purpose:** Autonomous marketing agent for Odin Smalls' ZAHANARA dark cultivation fantasy series
+
+**Recent Updates:**
+- Model optimization: Removed failing models (deepseek-r1, mixtral), freed 30.7 GB
+- Verified tool-calling reliability across all Ollama models
+- Full cron job management capabilities enabled (create/edit/delete/run)
+- Marketing automation framework established
 
 ---
 
@@ -61,6 +67,7 @@ Your agent's personality and behavior are defined by three core markdown files:
 Your deployment uses **intelligent cost optimization** via hybrid provider routing:
 
 ### Default Behavior
+
 - **Provider:** OpenRouter (Claude Sonnet 4)
 - **Use Case:** Marketing content, book chapters, brand strategy
 - **Cost:** ~$0.003 per request (premium quality)
@@ -69,19 +76,26 @@ Your deployment uses **intelligent cost optimization** via hybrid provider routi
 
 The agent automatically selects the most cost-efficient model:
 
-| Hint | Model | Provider | Cost | Use Case |
-|------|-------|----------|------|----------|
-| `default` | Claude Sonnet 4 | OpenRouter | $$ | Final content, client-facing |
-| `hint:marketing` | Claude Sonnet 4 | OpenRouter | $$ | Campaigns, brand work |
-| `hint:book` | Claude Sonnet 4 | OpenRouter | $$ | Book chapters |
-| `hint:deep` | Claude Sonnet 4.5 | OpenRouter | $$$ | Strategic analysis |
-| `hint:final` | Claude Sonnet 4 | OpenRouter | $$ | Publication polish |
-| **`hint:draft`** | llama3.2 | Ollama | FREE | Brainstorming, outlines |
-| **`hint:brainstorm`** | llama3.2 | Ollama | FREE | Idea generation |
-| **`hint:outline`** | llama3.2 | Ollama | FREE | Structure planning |
-| **`hint:seo`** | deepseek-r1 | Ollama | FREE | Keyword research |
-| **`hint:code`** | qwen2.5-coder | Ollama | FREE | Programming tasks |
-| **`hint:fast`** | gemma3:4b | Ollama | FREE | Quick summaries |
+| Hint | Model | Provider | Cost | Tool Support | Use Case |
+|------|-------|----------|------|--------------|----------|
+| `default` | Claude Sonnet 4 | OpenRouter | $$ | ✅ | Final content, client-facing |
+| `hint:marketing` | Claude Sonnet 4 | OpenRouter | $$ | ✅ | Campaigns, brand work |
+| `hint:book` | Claude Sonnet 4 | OpenRouter | $$ | ✅ | Book chapters |
+| `hint:deep` | Claude Sonnet 4.5 | OpenRouter | $$$ | ✅ | Strategic analysis |
+| `hint:final` | Claude Sonnet 4 | OpenRouter | $$ | ✅ | Publication polish |
+| **`hint:draft`** | gpt-oss:20b | Ollama | FREE | ✅ | Tool calls, brainstorming |
+| **`hint:brainstorm`** | gpt-oss:20b | Ollama | FREE | ✅ | Creative ideation |
+| **`hint:fast`** | gpt-oss:20b | Ollama | FREE | ✅ | Quick tool operations |
+| **`hint:seo`** | gpt-oss:20b | Ollama | FREE | ✅ | Keyword research, tool access |
+| **`hint:reasoning`** | qwen3:8b | Ollama | FREE | ✅ | Complex analysis |
+| **`hint:outline`** | qwen2.5:7b | Ollama | FREE | ❌ | Structure planning (no tools) |
+| **`hint:code`** | qwen2.5-coder | Ollama | FREE | ❌ | Programming tasks |
+
+**Model Reliability Testing (2026-03-22):**
+- ✅ **gpt-oss:20b** — Primary tool-calling model (8-15 t/s, 90% Sonnet quality)
+- ✅ **qwen3:8b** — Backup tool-calling, reasoning (12-20 t/s)
+- ✅ **qwen2.5:7b** — Non-tool tasks only (outlines, structure)
+- ❌ **Removed:** deepseek-r1 (malformed tool calls), mixtral:8x7b (no tool support)
 
 **Cost Optimization:** 80% savings by using free Ollama for drafts/utility, premium Claude only for final polish.
 
@@ -90,7 +104,8 @@ The agent automatically selects the most cost-efficient model:
 ## Access Points
 
 ### 1. Web Dashboard
-**URL:** http://localhost:42617  
+
+**URL:** <http://localhost:42617>  
 **Features:**
 - Real-time chat interface
 - Pairing code management
@@ -98,11 +113,12 @@ The agent automatically selects the most cost-efficient model:
 - WebSocket chat support
 
 **First-time setup:**
-1. Navigate to http://localhost:42617
+1. Navigate to <http://localhost:42617>
 2. Enter pairing code (check logs: `docker logs zeroclaw-marketing`)
 3. Start chatting with your agent
 
 ### 2. Telegram Bot
+
 **Bot Username:** @Kuffsbot  
 **Bot ID:** 8711868088  
 **Allowed Users:** 8203092181 (your Telegram ID)
@@ -114,17 +130,33 @@ The agent automatically selects the most cost-efficient model:
 - Mention mode: Off (responds to all messages)
 
 ### 3. CLI (inside container)
+
 ```bash
 docker exec -it zeroclaw-marketing zeroclaw status
 docker exec -it zeroclaw-marketing zeroclaw memory list
 docker exec -it zeroclaw-marketing zeroclaw tools list
+docker exec -it zeroclaw-marketing zeroclaw cron list
 ```
+
+### 4. Cron Job Management
+
+**Autonomous Scheduling:** Agent can create, edit, delete, and run scheduled jobs
+
+**Available Commands:**
+- `cron_list` — View all scheduled jobs with IDs, schedules, delivery settings
+- `cron_add` — Create new jobs (agent tasks or shell commands) with Telegram delivery
+- `cron_update` — Modify schedule, prompt, delivery channel, enable/disable
+- `cron_remove` — Delete jobs by ID
+- `cron_run` — Manually trigger job to test immediately
+
+**All cron tools are auto-approved** — agent can manage scheduling autonomously.
 
 ---
 
 ## Configuration Details
 
 ### Environment Variables
+
 ```bash
 # Provider Configuration
 PROVIDER=openrouter
@@ -144,6 +176,7 @@ COST_LIMIT_MONTHLY_USD=50.00
 ```
 
 ### Workspace Structure
+
 ```
 /zeroclaw-data/workspace/
 ├── AGENTS.md          # Orchestrator + team roster (auto-loaded)
@@ -158,6 +191,7 @@ COST_LIMIT_MONTHLY_USD=50.00
 ```
 
 ### Security Features
+
 - **Pairing required:** One-time codes for new clients
 - **Rate limiting:** 5 pairs/min, 30 webhooks/min
 - **Workspace sandboxing:** Agent can't access host filesystem
@@ -169,6 +203,7 @@ COST_LIMIT_MONTHLY_USD=50.00
 ## Daily Operations
 
 ### Starting the Agent
+
 ```bash
 cd H:\GitHub\zeroclaw-main\deploy\marketing
 docker compose up -d
@@ -176,31 +211,81 @@ docker logs zeroclaw-marketing --tail 50  # Check status
 ```
 
 ### Stopping the Agent
+
 ```bash
 docker compose down
 ```
 
 ### Viewing Logs
+
 ```bash
 docker logs zeroclaw-marketing --tail 100 --follow
 ```
 
 ### Getting Pairing Code
+
 ```bash
 docker logs zeroclaw-marketing | grep "pairing code"
 # Look for the box with 6-digit code
 ```
 
 ### Checking System Status
+
 ```bash
 docker exec zeroclaw-marketing zeroclaw status
 ```
 
 ### Accessing Output Files
+
 Generated content is automatically saved to:
 ```
 H:\GitHub\zeroclaw-main\deploy\marketing\output\
 ```
+
+---
+
+## Marketing Automation Framework
+
+### Active Scheduled Jobs
+
+Your agent manages these recurring marketing tasks:
+
+1. **BookBub Weekly Check** — Every Monday 9 AM UTC
+2. **Weekly Review** — Fridays 8 PM ET (analytics reporter)
+3. **Weekly Email Draft** — Mondays 9 AM ET (content creator)
+4. **Monthly Review** — 28th of month (executive summary)
+5. **MiBlart Cover Review** — March 21 annually
+6. **Mini-Relaunch Kickoff** — April 1 (orchestrator)
+7. **StoryOrigin Promos** — 1st & 15th of month
+
+### Recommended Marketing Automation Tasks
+
+Based on AI marketing team best practices for ebook authors:
+
+**Content Marketing:**
+- Daily Amazon ranking checks
+- Weekly review monitoring and sentiment analysis
+- Bi-weekly social content generation
+- Newsletter drafting
+
+**Performance Analytics:**
+- Weekly ad performance audits (Amazon/Facebook)
+- Monthly competitive analysis
+- Sales tracking and KDP monitoring
+
+**Promotion Management:**
+- BookBub/promo site opportunity scanning
+- ARC campaign coordination
+- Seasonal campaign planning
+
+**Strategic Planning:**
+- Quarterly launch planning
+- Audience research and trend analysis
+- Keyword optimization reviews
+- Pricing strategy analysis
+
+**How to Add Jobs:**
+Simply tell your bot: "Create a cron job for [task] running [schedule]" and it will use `cron_add` to set it up with Telegram delivery.
 
 ---
 
@@ -227,6 +312,7 @@ Your orchestrator coordinates these specialist agents (stored in `agents/` folde
 ## Cost Management
 
 ### Daily Budget: $5.00
+
 **Typical Usage:**
 - 10 final marketing posts (Claude): ~$0.30
 - 50 brainstorming sessions (Ollama): $0.00
@@ -235,9 +321,11 @@ Your orchestrator coordinates these specialist agents (stored in `agents/` folde
 - **Total:** ~$0.75/day (well under budget)
 
 ### Monthly Budget: $50.00
+
 **Projected:** ~$22.50/month at current usage
 
 ### Cost Warnings
+
 - System warns at 80% of budget
 - Agent automatically switches to free models if approaching limit
 
@@ -246,6 +334,7 @@ Your orchestrator coordinates these specialist agents (stored in `agents/` folde
 ## Troubleshooting
 
 ### Issue: Dashboard won't load
+
 **Solution:**
 ```bash
 docker logs zeroclaw-marketing  # Check for errors
@@ -253,20 +342,23 @@ curl http://localhost:42617/health  # Test backend
 ```
 
 ### Issue: Ollama models not working
+
 **Solution:**
 1. Check Ollama is running: `ollama list`
 2. Verify host networking: `docker logs zeroclaw-marketing | grep "host.docker.internal"`
 3. Pull missing models: `ollama pull llama3.2`
 
 ### Issue: Telegram bot not responding
+
 **Solution:**
 1. Verify bot token: `echo $TELEGRAM_BOT_TOKEN`
 2. Check allowed users in `config.toml`
 3. Restart containers: `docker compose down && docker compose up -d`
 
 ### Issue: Out of OpenRouter credits
+
 **Solution:**
-1. Add credits at https://openrouter.ai
+1. Add credits at <https://openrouter.ai>
 2. Or switch to free-only mode: Edit `config.toml` → set `default_provider = "ollama"`
 
 ---
@@ -274,9 +366,11 @@ curl http://localhost:42617/health  # Test backend
 ## Git Workflow
 
 ### Current Branch
+
 `feature/v0.4.3-with-customizations`
 
 ### Custom Commits (Cherry-picked from fork)
+
 1. Marketing deployment configuration (port 42617)
 2. Telegram document upload support
 3. Output folder for deliverables
@@ -286,7 +380,8 @@ curl http://localhost:42617/health  # Test backend
 7. STYLE.md (voice protocol)
 
 ### Upstream
-**Repo:** https://github.com/zeroclaw-labs/zeroclaw  
+
+**Repo:** <https://github.com/zeroclaw-labs/zeroclaw>  
 **Version:** v0.4.3
 
 ---
@@ -322,7 +417,7 @@ curl http://localhost:42617/health  # Test backend
 
 1. **Test the agent:**
    - Send "hello" via Telegram
-   - Visit http://localhost:42617
+   - Visit <http://localhost:42617>
    - Ask: "hint:brainstorm Generate 5 book title ideas"
 
 2. **Create specialist agents:**
@@ -330,7 +425,7 @@ curl http://localhost:42617/health  # Test backend
    - Restart containers to load them
 
 3. **Monitor costs:**
-   - Check OpenRouter dashboard: https://openrouter.ai/credits
+   - Check OpenRouter dashboard: <https://openrouter.ai/credits>
    - Review agent logs for model selection
 
 4. **Optimize workflows:**
@@ -342,10 +437,10 @@ curl http://localhost:42617/health  # Test backend
 
 ## Support & Documentation
 
-- **ZeroClaw Docs:** https://docs.zeroclaw.ai (if available)
-- **Upstream Repo:** https://github.com/zeroclaw-labs/zeroclaw
-- **OpenRouter Docs:** https://openrouter.ai/docs
-- **Ollama Docs:** https://ollama.ai/docs
+- **ZeroClaw Docs:** <https://docs.zeroclaw.ai> (if available)
+- **Upstream Repo:** <https://github.com/zeroclaw-labs/zeroclaw>
+- **OpenRouter Docs:** <https://openrouter.ai/docs>
+- **Ollama Docs:** <https://ollama.ai/docs>
 
 ---
 

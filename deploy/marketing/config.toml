@@ -45,14 +45,14 @@ model = "qwen2.5-coder:latest"
 [[model_routes]]
 hint = "reasoning"
 provider = "ollama"
-model = "mixtral:8x7b"
-# Complex analysis like BookBub strategy (5-15 t/s, medium savings)
+model = "qwen3:8b"
+# Complex analysis like BookBub strategy (12-20 t/s, high savings)
 
 [[model_routes]]
 hint = "fast"
 provider = "ollama"
-model = "MFDoom/deepseek-r1-tool-calling:latest"
-# Quick responses with tool access (10-20 t/s)
+model = "gpt-oss:20b"
+# Quick responses with tool access (8-15 t/s, proven reliable)
 
 [[model_routes]]
 hint = "draft"
@@ -75,8 +75,8 @@ model = "qwen2.5:7b"
 [[model_routes]]
 hint = "seo"
 provider = "ollama"
-model = "MFDoom/deepseek-r1-tool-calling:latest"
-# Keywords/promos (10-20 t/s, high savings)
+model = "gpt-oss:20b"
+# Keywords/promos (8-15 t/s, proven reliable)
 
 [[model_routes]]
 hint = "final"
