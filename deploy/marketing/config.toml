@@ -1,0 +1,384 @@
+# ZeroClaw Marketing Research Agent — Hardened Config
+workspace_dir = "/zeroclaw-data/workspace"
+config_path = "/zeroclaw-data/.zeroclaw/config.toml"
+
+default_provider = "openrouter"
+default_model = "anthropic/claude-sonnet-4"
+default_temperature = 0.7
+
+# ── Provider Configuration ──────────────────────────────────────────
+# Ollama provider for free local models
+[model_providers.ollama]
+name = "ollama"
+base_url = "http://host.docker.internal:11434"
+
+# ── Model Routes (Hybrid: Quality for marketing + Privacy for sensitive) ──
+# Default: OpenRouter Claude for marketing quality
+# Use hint:<name> to switch models based on task requirements
+
+# ── Premium Routes (OpenRouter for marketing quality) ──
+[[model_routes]]
+hint = "book"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Premium writing for book chapters and long-form content
+
+[[model_routes]]
+hint = "marketing"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Marketing content, brand strategy, creative campaigns
+
+[[model_routes]]
+hint = "deep"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Deep reasoning for complex strategic analysis
+
+# ── Ollama Routes (free local models for utility tasks) ──
+[[model_routes]]
+hint = "code"
+provider = "ollama"
+model = "qwen2.5-coder:latest"
+# 7.6B coding specialist - programming tasks
+
+[[model_routes]]
+hint = "reasoning"
+provider = "ollama"
+model = "qwen3:8b"
+# Complex analysis like BookBub strategy (12-20 t/s, high savings)
+
+[[model_routes]]
+hint = "fast"
+provider = "ollama"
+model = "gpt-oss:20b"
+# Quick responses with tool access (8-15 t/s, proven reliable)
+
+[[model_routes]]
+hint = "draft"
+provider = "ollama"
+model = "gpt-oss:20b"
+# Versatile drafts, lore with tool access (8-15 t/s, 90% Sonnet quality)
+
+[[model_routes]]
+hint = "brainstorm"
+provider = "ollama"
+model = "gpt-oss:20b"
+# Creative hooks, ideas - best balance quality/tools (8-15 t/s)
+
+[[model_routes]]
+hint = "outline"
+provider = "ollama"
+model = "qwen2.5:7b"
+# Plans/structure (12-25 t/s, high savings)
+
+[[model_routes]]
+hint = "seo"
+provider = "ollama"
+model = "gpt-oss:20b"
+# Keywords/promos (8-15 t/s, proven reliable)
+
+[[model_routes]]
+hint = "final"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Final polish for publication-ready work
+
+# ── Privacy Routes (Local-only for sensitive data) ──
+[[model_routes]]
+hint = "sensitive"
+provider = "ollama"
+model = "gemma4:latest"
+# Sensitive vault content - manuscripts, personal notes (100% local)
+
+[[model_routes]]
+hint = "vault"
+provider = "openrouter"
+model = "anthropic/claude-sonnet-4"
+# Obsidian vault processing - fast, tool-capable Claude for vault queries (5-15s vs 5+ min with Ollama)
+
+[[model_routes]]
+hint = "private"
+provider = "ollama"
+model = "gemma4:latest"
+# Any private data that must stay local
+
+[gateway]
+port = 3000
+host = "[::]"
+allow_public_bind = true
+require_pairing = true
+pair_rate_limit_per_minute = 5
+webhook_rate_limit_per_minute = 30
+
+[autonomy]
+level = "supervised"
+workspace_only = true
+require_approval_for_medium_risk = true
+block_high_risk_commands = true
+max_actions_per_hour = 60
+max_cost_per_day_cents = 500
+allowed_commands = [
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "grep",
+    "find",
+    "echo",
+    "pwd",
+]
+forbidden_paths = [
+    "/etc",
+    "/root",
+    "/home",
+    "/usr",
+    "/bin",
+    "/sbin",
+    "/lib",
+    "/opt",
+    "/boot",
+    "/dev",
+    "/proc",
+    "/sys",
+    "/var",
+    "/tmp",
+    "~/.ssh",
+    "~/.gnupg",
+    "~/.aws",
+    "~/.config",
+]
+auto_approve = [
+    "file_read",
+    "file_write",
+    "file_edit",
+    "glob_search",
+    "content_search",
+    "pdf_read",
+    "image_info",
+    "memory_recall",
+    "memory_store",
+    "memory_forget",
+    "web_search_tool",
+    "http_request",
+    "cron_add",
+    "cron_list",
+    "cron_remove",
+    "cron_update",
+    "cron_run",
+    "cron_runs",
+]
+always_ask = []
+
+[web_search]
+enabled = true
+provider = "duckduckgo"
+max_results = 10
+timeout_secs = 20
+
+[http_request]
+enabled = true
+allowed_domains = ["*"]
+max_response_size = 1000000
+timeout_secs = 30
+
+[memory]
+backend = "sqlite"
+auto_save = true
+
+[browser]
+enabled = false
+
+[composio]
+enabled = false
+
+[hardware]
+enabled = false
+
+[peripherals]
+enabled = false
+
+[secrets]
+encrypt = true
+
+[cost]
+enabled = true
+daily_limit_usd = 5.00
+monthly_limit_usd = 50.00
+warn_at_percent = 80
+
+[channels_config]
+cli = true
+
+[channels_config.telegram]
+bot_token = "8711868088:AAE3ymXEXa739HfPm0crvBEI6XMIVcRaORk"
+allowed_users = ["8203092181"]
+stream_mode = "partial"
+mention_only = false
+
+[observability]
+backend = "log"
+
+[agent]
+max_tool_iterations = 15
+max_history_messages = 50
+compact_context = false
+parallel_tools = false
+
+[scheduler]
+enabled = true
+
+[cron]
+enabled = true
+
+# ── Automatic Model Selection ────────────────────────────────────
+# Intelligent routing: analyzes message content and picks best model
+# Rules evaluated by priority (higher = checked first)
+
+[query_classification]
+enabled = true
+
+# Draft tasks → Ollama llama3:8b (cost-optimized, tool access)
+[[query_classification.rules]]
+hint = "draft"
+keywords = [
+    "draft",
+    "rough draft",
+    "first draft",
+    "quick draft",
+    "write a draft",
+]
+priority = 110
+
+# High-priority creative tasks → Claude Sonnet 4
+[[query_classification.rules]]
+hint = "marketing"
+keywords = [
+    "email",
+    "newsletter",
+    "campaign",
+    "nurture",
+    "copy",
+    "blurb",
+    "headline",
+    "hook",
+    "teaser",
+    "promo",
+    "brand",
+    "voice",
+    "tone",
+]
+priority = 100
+
+[[query_classification.rules]]
+hint = "book"
+keywords = [
+    "chapter",
+    "scene",
+    "story",
+    "character",
+    "plot",
+    "prose",
+    "manuscript",
+    "fiction",
+    "novel",
+]
+priority = 100
+
+# Deep analysis → Claude Sonnet 4 (reliable availability)
+[[query_classification.rules]]
+hint = "deep"
+keywords = [
+    "strategy",
+    "analyze",
+    "metrics",
+    "performance",
+    "roi",
+    "decision",
+    "recommend",
+    "evaluate",
+    "compare",
+]
+min_length = 100
+priority = 90
+
+# Vault/sensitive data → Ollama gpt-oss:20b (100% local, privacy, tool-capable)
+# HIGHEST PRIORITY - explicit vault processing always uses local model with file tools
+[[query_classification.rules]]
+hint = "vault"
+keywords = [
+    "vault",
+    "manuscript",
+    "character",
+    "obsidian",
+    "wiki",
+    "sensitive",
+    "private",
+    "raw/",
+    "hint:vault",
+]
+priority = 110
+
+# Code/technical → Ollama qwen2.5-coder (free)
+[[query_classification.rules]]
+hint = "code"
+patterns = ["```", "fn ", "def ", "class ", "import ", "function"]
+keywords = ["code", "script", "debug", "error", "syntax", "programming"]
+priority = 80
+
+# SEO/keywords → Ollama deepseek-r1 (cost-optimized)
+[[query_classification.rules]]
+hint = "seo"
+keywords = [
+    "keyword",
+    "ctr",
+    "cpc",
+    "conversion",
+    "bookbub",
+    "amazon ads",
+    "data",
+    "csv",
+    "stats",
+]
+priority = 70
+
+# Quick/short tasks → Ollama gemma3:4b (fast & free)
+[[query_classification.rules]]
+hint = "fast"
+keywords = [
+    "ok",
+    "thanks",
+    "yes",
+    "no",
+    "got it",
+    "sure",
+    "nope",
+    "yeah",
+    "yep",
+    "k",
+    "ty",
+    "thx",
+]
+max_length = 50
+priority = 60
+
+# Brainstorming → Ollama gemma3:4b (fast & free)
+[[query_classification.rules]]
+hint = "brainstorm"
+keywords = [
+    "ideas",
+    "brainstorm",
+    "suggest",
+    "what if",
+    "options",
+    "alternatives",
+    "possibilities",
+]
+priority = 50
+
+# Default: marketing-quality Claude Sonnet 4 for anything else
+# (Set via default_model above)
+
+[runtime]
+kind = "native"
