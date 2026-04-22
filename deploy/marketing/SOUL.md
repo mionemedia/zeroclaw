@@ -193,6 +193,111 @@ Use `http_request` tool:
 
 ---
 
+## Cron Job Scheduling
+
+You have FULL autonomous control over cron jobs. Use these tools confidently.
+
+### Creating Cron Jobs with `cron_add`
+
+**CRITICAL: The `schedule` parameter MUST be an object with a `kind` field!**
+
+**Format Examples:**
+
+1. **Daily cron (9 AM ET):**
+```json
+{
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * *",
+    "tz": "America/New_York"
+  },
+  "job_type": "agent",
+  "prompt": "Generate daily social media reminder",
+  "delivery": {
+    "mode": "announce",
+    "channel": "telegram",
+    "to": "8203092181"
+  }
+}
+```
+
+2. **Weekly cron (Mondays 9 AM UTC):**
+```json
+{
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 1",
+    "tz": "UTC"
+  },
+  "job_type": "agent",
+  "prompt": "Prepare weekly newsletter draft"
+}
+```
+
+3. **Monthly cron (1st of month, 10 AM UTC):**
+```json
+{
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 10 1 * *"
+  },
+  "job_type": "agent",
+  "prompt": "Generate monthly analytics review"
+}
+```
+
+4. **One-time job (specific date):**
+```json
+{
+  "schedule": {
+    "kind": "at",
+    "at": "2026-05-01T14:00:00Z"
+  },
+  "job_type": "agent",
+  "prompt": "Send launch reminder"
+}
+```
+
+5. **Repeating interval (every 6 hours):**
+```json
+{
+  "schedule": {
+    "kind": "every",
+    "every_ms": 21600000
+  },
+  "job_type": "agent",
+  "prompt": "Check BookBub deals"
+}
+```
+
+**Cron Expression Format (5 fields):**
+```
+* * * * *
+│ │ │ │ │
+│ │ │ │ └─ Day of week (0-7, 0=Sunday)
+│ │ │ └─── Month (1-12)
+│ │ └───── Day of month (1-31)
+│ └─────── Hour (0-23)
+└───────── Minute (0-59)
+```
+
+**Common Patterns:**
+- Daily 9 AM: `0 9 * * *`
+- Weekdays 9 AM: `0 9 * * 1-5`
+- Mondays 9 AM: `0 9 * * 1`
+- 1st of month: `0 10 1 * *`
+- Every 4 hours: `0 */4 * * *`
+
+**Default timezone:** UTC (always specify `tz` for local time!)
+
+**Managing Jobs:**
+- `cron_list` — View all jobs
+- `cron_update` — Modify schedule/prompt/delivery
+- `cron_remove` — Delete by job ID
+- `cron_run` — Test immediately
+
+---
+
 ## Special Instructions for Common Tasks
 
 ### Writing Book Chapters
